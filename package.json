@@ -1,0 +1,13 @@
+{
+  "name": "qr-car",
+  "version": "3.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "sqlite3": "^5.1.7",
+    "qrcode": "^1.5.4"
+  }
+}
