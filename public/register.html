@@ -1,1 +1,339 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QR CAR Registratsiya</title><style>body{font-family:Arial;background:#f2f4f7}.c{max-width:480px;margin:20px auto;background:#fff;padding:25px;border-radius:20px}input,textarea,button{width:100%;box-sizing:border-box;padding:12px;margin:6px 0 12px;border:1px solid #ccc;border-radius:10px;font-size:16px}button{background:#2563eb;color:#fff;border:0;font-weight:bold}</style><div class=c><h1>🚗 QR CAR</h1><h3>Registratsiya</h3><form id=f><input id=qr placeholder="QR ID: QRCAR0001" required><input id=n placeholder="Ism-familiya" required><input id=p placeholder="Telefon" required><input id=m placeholder="Avtomobil modeli"><input id=pl placeholder="Davlat raqami"><input id=t placeholder="Telegram"><textarea id=no placeholder="Izoh"></textarea><input id=pa type=password placeholder="Parol (6+ belgi)" required><button>Registratsiya</button></form><p id=x></p></div><script>let z=new URLSearchParams(location.search).get("qr");if(z)qr.value=z;f.onsubmit=async e=>{e.preventDefault();let r=await fetch("/api/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({qrId:qr.value,name:n.value,phone:p.value,model:m.value,plate:pl.value,telegram:t.value,note:no.value,password:pa.value})}),d=await r.json();if(!r.ok)return x.textContent="❌ "+d.error;localStorage.token=d.token;location="/account.html"}</script>
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>QR CAR — Registratsiya</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      background: #f2f4f7;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 450px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 20px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.12);
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #1683f8;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      margin-top: 22px;
+      border: 0;
+      border-radius: 12px;
+      background: #1683f8;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #086fd8;
+    }
+
+    .qr-box {
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .error {
+      color: #d00;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .success {
+      color: #16803c;
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>🚗 QR CAR</h1>
+
+  <p style="text-align:center;">
+    Avtomobil ma'lumotlarini kiriting
+  </p>
+
+  <div class="qr-box">
+    <b>QR ID:</b>
+    <span id="qrText">Aniqlanmoqda...</span>
+  </div>
+
+
+  <form id="registerForm">
+
+    <label>Ism va familiya</label>
+
+    <input
+      type="text"
+      id="name"
+      placeholder="Masalan: Mavlonov Bobur"
+      required
+    >
+
+
+    <label>Telefon raqam</label>
+
+    <input
+      type="tel"
+      id="phone"
+      placeholder="+998 93 540 23 08"
+      required
+    >
+
+
+    <label>Avtomobil raqami</label>
+
+    <input
+      type="text"
+      id="carNumber"
+      placeholder="01 A 123 BC"
+    >
+
+
+    <label>Avtomobil markasi</label>
+
+    <input
+      type="text"
+      id="carModel"
+      placeholder="Chevrolet Cobalt"
+    >
+
+
+    <label>Qo‘shimcha ma'lumot</label>
+
+    <input
+      type="text"
+      id="info"
+      placeholder="Masalan: oq rang"
+    >
+
+
+    <button type="submit">
+      ✅ REGISTRATSIYADAN O‘TISH
+    </button>
+
+  </form>
+
+
+  <div id="message"></div>
+
+</div>
+
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+
+let qrId = params.get("qr");
+
+
+/*
+  QR ID bo'lmasa
+*/
+
+if (!qrId) {
+
+  document.getElementById("qrText").innerText =
+    "QR ID topilmadi";
+
+} else {
+
+  document.getElementById("qrText").innerText =
+    qrId;
+
+}
+
+
+/*
+  REGISTRATSIYA
+*/
+
+document.getElementById("registerForm").addEventListener(
+  "submit",
+  async function(event) {
+
+    event.preventDefault();
+
+
+    if (!qrId) {
+
+      showError("❌ QR ID topilmadi.");
+
+      return;
+
+    }
+
+
+    const name =
+      document.getElementById("name").value.trim();
+
+    const phone =
+      document.getElementById("phone").value.trim();
+
+    const carNumber =
+      document.getElementById("carNumber").value.trim();
+
+    const carModel =
+      document.getElementById("carModel").value.trim();
+
+    const info =
+      document.getElementById("info").value.trim();
+
+
+    if (!name || !phone) {
+
+      showError(
+        "❌ Ism va telefon raqamni kiriting."
+      );
+
+      return;
+
+    }
+
+
+    const data = {
+
+      qr_id: qrId,
+
+      name: name,
+
+      phone: phone,
+
+      car_number: carNumber,
+
+      car_model: carModel,
+
+      info: info
+
+    };
+
+
+    try {
+
+      const response = await fetch(
+        "/api/register",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify(data)
+        }
+      );
+const result = await response.json();
+
+
+      if (!response.ok) {
+
+        showError(
+          "❌ " +
+          (result.error ||
+          "Registratsiya amalga oshmadi.")
+        );
+
+        return;
+
+      }
+
+
+      /*
+        MUVAFFAQIYATLI
+      */
+
+      document.getElementById("message").className =
+        "success";
+
+      document.getElementById("message").innerText =
+        "✅ Registratsiya muvaffaqiyatli!";
+
+
+      /*
+        Profilga o'tish
+      */
+
+      setTimeout(function() {
+
+        window.location.href =
+          "/car/" +
+          encodeURIComponent(qrId);
+
+      }, 1000);
+
+
+    } catch (error) {
+
+      showError(
+        "❌ Server bilan aloqa qilishda xato."
+      );
+
+    }
+
+  }
+);
+
+
+function showError(text) {
+
+  document.getElementById("message").className =
+    "error";
+
+  document.getElementById("message").innerText =
+    text;
+
+}
+
+</script>
+
+</body>
+</html>
