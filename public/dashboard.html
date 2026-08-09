@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Car — Shaxsiy kabinet</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f2f4f7;
+}
+
+.box {
+    max-width: 500px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px #ccc;
+}
+
+input, textarea, button {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+button {
+    border: none;
+    background: #111;
+    color: white;
+    font-weight: bold;
+}
+
+.logout {
+    background: #d00;
+}
+
+#qr {
+    text-align: center;
+    margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<div class="card">
+
+<h2>🚗 QR Car</h2>
+
+<h3>Shaxsiy kabinet</h3>
+
+<input id="name" placeholder="F.I.Sh.">
+
+<input id="phone" placeholder="Telefon">
+
+<input id="car_number" placeholder="Davlat raqami">
+
+<input id="car_model" placeholder="Mashina rusumi">
+
+<textarea id="info"
+placeholder="Qo‘shimcha ma'lumot"></textarea>
+
+<button onclick="saveData()">
+💾 Ma'lumotlarni saqlash
+</button>
+
+<hr>
+
+<h3>🔲 Sizning QR kodingiz</h3>
+
+<div id="qr"></div>
+
+<button onclick="downloadQR()">
+📥 QR kodni yuklab olish
+</button>
+
+<br>
+
+<button class="logout"
+onclick="logout()">
+🚪 Chiqish
+</button>
+
+<div id="message"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const token =
+localStorage.getItem("qr_token");
+
+if (!token) {
+    window.location.href =
+        "/login.html";
+}
+
+async function loadData() {
+
+    try {
+
+        const response =
+            await fetch("/api/me", {
+                headers: {
+                    "Authorization":
+                    "Bearer " + token
+                }
+            });
+
+        if (!response.ok) {
+            logout();
+            return;
+        }
+
+        const data =
+            await response.json();
+
+        document.getElementById("name").value =
+            data.name || "";
+
+        document.getElementById("phone").value =
+            data.phone || "";
+
+        document.getElementById("car_number").value =
+            data.car_number || "";
+
+        document.getElementById("car_model").value =
+            data.car_model || "";
+
+        document.getElementById("info").value =
+            data.info || "";
+
+        createQR(data.qr_id);
+
+    } catch (error) {
+
+        document.getElementById("message").innerHTML =
+            "❌ Ma'lumotlarni olishda xatolik";
+
+    }
+}
+
+async function saveData() {
+
+    const data = {
+
+        name:
+        document.getElementById("name").value,
+
+        phone:
+        document.getElementById("phone").value,
+
+        car_number:
+        document.getElementById("car_number").value,
+
+        car_model:
+        document.getElementById("car_model").value,
+
+        info:
+        document.getElementById("info").value
+
+    };
+
+    const response =
+        await fetch("/api/me", {
+
+        method: "PUT",
+
+        headers: {
+            "Content-Type":
+            "application/json",
+
+            "Authorization":
+            "Bearer " + token
+        },
+
+        body:
+        JSON.stringify(data)
+
+    });
+
+    const result =
+        await response.json();
+
+    if (!response.ok) {
+
+        document.getElementById("message").innerHTML =
+            "❌ " + result.error;
+
+        return;
+    }
+
+    document.getElementById("message").innerHTML =
+        "✅ Ma'lumotlar saqlandi!";
+
+}
+
+function createQR(qr_id) {
+
+    const url =
+        window.location.origin +
+        "/car.html?id=" +
+        qr_id;
+
+    const img =
+        document.createElement("img");
+
+    img.id = "qrImage";
+
+    img.width = 250;
+
+    img.src =
+        "/api/qr/" + qr_id + ".png";
+
+    document.getElementById("qr").innerHTML = "";
+
+    document.getElementById("qr").appendChild(img);
+}
+
+function downloadQR() {
+
+    const img =
+        document.getElementById("qrImage");
+
+    if (!img) {
+        alert("QR kod hali tayyor emas!");
+        return;
+    }
+const link =
+        document.createElement("a");
+
+    link.href = img.src;
+
+    link.download =
+        "QR-Car.png";
+
+    link.click();
+}
+
+function logout() {
+
+    localStorage.removeItem("qr_token");
+
+    localStorage.removeItem("qr_id");
+
+    window.location.href =
+        "/login.html";
+}
+
+loadData();
+
+</script>
+
+</body>
+</html>
