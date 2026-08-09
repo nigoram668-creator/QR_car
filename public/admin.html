@@ -1,56 +1,10 @@
-<!doctype html>
-<html lang="uz">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>QR CAR — QR Generator</title>
-<style>
-*{box-sizing:border-box}body{font-family:Arial,sans-serif;background:#f2f4f7;margin:0}
-.wrap{max-width:1000px;margin:25px auto;padding:15px}.card{background:#fff;border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:0 4px 18px #00000010}
-input,button{padding:12px;border:1px solid #d1d5db;border-radius:10px;font-size:16px}
-input{width:100%;margin:6px 0 12px}button{background:#2563eb;color:#fff;border:0;cursor:pointer;margin:5px 5px 5px 0}
-button.gray{background:#4b5563}.row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:15px}.qr{border:1px solid #e5e7eb;border-radius:14px;padding:14px;text-align:center;background:#fff}.qr img{width:190px;height:190px;max-width:100%}
-.small{font-size:13px;color:#6b7280;word-break:break-all}.ok{color:#15803d}.err{color:#b91c1c}
-@media(max-width:650px){.row{grid-template-columns:1fr}}
-</style>
-</head>
-<body><div class="wrap">
-<div class="card">
-<h1>🚗 QR CAR — QR Generator v3</h1>
-<p>Bu sahifadan mashinalar uchun alohida QR kodlar yaratishingiz mumkin.</p>
-<div class="row">
-<div><label>Sayt manzili (QR ichiga yoziladi)</label><input id="base" placeholder="https://sizningsaytingiz.uz"></div>
-<div><label>Nechta QR?</label><input id="count" type="number" min="1" max="1000" value="10"></div>
-</div>
-<button onclick="generate()">➕ QR kodlar yaratish</button>
-<button class="gray" onclick="load()">🔄 Ro‘yxatni yangilash</button>
-<p id="msg"></p>
-</div>
-<div class="card"><h2>QR kodlar</h2><div id="list" class="grid"></div></div>
-</div>
+<!doctype html><html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QR CAR — Boshqaruv</title><style>
+*{box-sizing:border-box}body{font-family:Arial;background:#f3f4f6;margin:0}.wrap{max-width:1100px;margin:20px auto;padding:15px}.card{background:#fff;border-radius:18px;padding:22px;margin-bottom:18px;box-shadow:0 4px 18px #0001}.row{display:grid;grid-template-columns:1fr 180px;gap:15px}input{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:16px}button{padding:12px 16px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-weight:bold;margin:5px;cursor:pointer}.gray{background:#4b5563}.green{background:#15803d}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px}.qr{border:1px solid #ddd;border-radius:14px;padding:12px;text-align:center;background:#fff}.qr img{width:180px;height:180px}.small{color:#666;font-size:13px}.ok{color:#15803d}.err{color:#b91c1c}#sheet{display:none}@media(max-width:650px){.row{grid-template-columns:1fr}}@media print{body{background:#fff}.no-print{display:none!important}#sheet{display:grid!important;grid-template-columns:repeat(3,1fr);gap:8mm;padding:8mm}.sticker{border:1px solid #000;padding:4mm;text-align:center;page-break-inside:avoid}.sticker img{width:45mm;height:45mm}.sticker h3{margin:2mm 0;font-size:14pt}.sticker p{font-size:8pt;margin:1mm}}</style></head><body>
+<div class="wrap no-print"><div class="card"><h1>🚗 QR CAR — QR Generator</h1><p>1 dan 1000 tagacha QR yarating.</p><div class="row"><div><label>Sayt manzili</label><input id="base" placeholder="https://qr-car.onrender.com"></div><div><label>Soni</label><input id="count" type="number" min="1" max="1000" value="10"></div></div><button onclick="generate()">➕ QR yaratish</button><button class="gray" onclick="load()">🔄 Yangilash</button><button class="green" onclick="printQR()">🖨️ Chop etish / PDF</button><p id="msg"></p></div><div class="card"><h2>QR kodlar</h2><div id="list" class="grid"></div></div></div><div id="sheet"></div>
 <script>
-const baseInput=document.getElementById("base");
-baseInput.value=localStorage.qrBase || location.origin;
-function urlFor(id){return (baseInput.value||location.origin).replace(/\/$/,"")+"/car/"+encodeURIComponent(id)}
-function imgFor(id){return "/api/qr/"+encodeURIComponent(id)+".png?base="+encodeURIComponent((baseInput.value||location.origin).replace(/\/$/,""))}
-async function generate(){
-  let count=Math.min(1000,Math.max(1,Number(document.getElementById("count").value)||1));
-  localStorage.qrBase=(baseInput.value||location.origin).replace(/\/$/,"");
-  let r=await fetch("/api/admin/generate-qr",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({count})});
-  let d=await r.json(); if(!r.ok){msg.className="err";msg.textContent="❌ "+d.error;return}
-  msg.className="ok";msg.textContent="✅ "+d.ids.length+" ta QR yaratildi";
-  load();
-}
-async function load(){
-  let r=await fetch("/api/admin/qr-list"),d=await r.json();
-  list.innerHTML=d.map(x=>`<div class="qr">
-    <img src="${imgFor(x.qr_id)}" alt="${x.qr_id}">
-    <h3>${x.qr_id}</h3>
-    <div class="small">${x.claimed?"✅ Ro‘yxatdan o‘tgan":"🟡 Bo‘sh QR"}</div>
-    <a href="${urlFor(x.qr_id)}" target="_blank">Profilni ochish</a><br>
-    <a href="/register.html?qr=${encodeURIComponent(x.qr_id)}" target="_blank">Registratsiya</a><br>
-    <a href="${imgFor(x.qr_id)}" download="${x.qr_id}.png">⬇️ PNG yuklash</a>
-  </div>`).join("");
-}
-load();
+const base=document.getElementById("base");base.value=localStorage.qrBase||location.origin;
+function clean(){return(base.value||location.origin).replace(/\/$/,"")}function img(id){return"/api/qr/"+encodeURIComponent(id)+".png?base="+encodeURIComponent(clean())}function url(id){return clean()+"/car/"+encodeURIComponent(id)}
+async function generate(){let n=Math.min(1000,Math.max(1,Number(count.value)||1));localStorage.qrBase=clean();let r=await fetch("/api/admin/generate-qr",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({count:n})}),d=await r.json();if(!r.ok){msg.className="err";msg.textContent="❌ "+d.error;return}msg.className="ok";msg.textContent="✅ "+d.ids.length+" ta QR yaratildi";load()}
+async function load(){let r=await fetch("/api/admin/qr-list"),d=await r.json();list.innerHTML=d.map(x=>`<div class="qr"><img src="${img(x.qr_id)}"><h3>${x.qr_id}</h3><div class="small">${x.claimed?"✅ Ro‘yxatdan o‘tgan":"🟡 Bo‘sh QR"}</div><a href="${url(x.qr_id)}" target="_blank">Profil</a> · <a href="/register.html?qr=${encodeURIComponent(x.qr_id)}" target="_blank">Registratsiya</a><br><a href="${img(x.qr_id)}" download="${x.qr_id}.png">⬇️ PNG</a></div>`).join("")}
+async function printQR(){let r=await fetch("/api/admin/qr-list"),d=await r.json();sheet.innerHTML=d.filter(x=>!x.claimed).map(x=>`<div class="sticker"><img src="${img(x.qr_id)}"><h3>🚗 QR CAR</h3><p>${x.qr_id}</p><p>Skanerlang</p></div>`).join("");if(!sheet.innerHTML){msg.textContent="Bo‘sh QR topilmadi";return}window.print()}load();
 </script></body></html>
