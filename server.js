@@ -41,4 +41,4 @@ app.post("/api/admin/generate-qr",async(q,s)=>{
   }catch(e){s.status(500).json({error:"QR yaratishda xato"})}
 });
 
-app.listen(PORT,()=>console.log("QR CAR v4 ishga tushdi: http://localhost:3000"));
+app.listen(PORT,()=>console.log("QR CAR v3 ishga tushdi: http://localhost:3000"));
