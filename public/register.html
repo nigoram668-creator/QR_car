@@ -1,336 +1,129 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Car — Ro‘yxatdan o‘tish</title>
 
-  <title>QR CAR — Registratsiya</title>
+<style>
+body {
+    font-family: Arial;
+    background: #f2f4f7;
+    padding: 20px;
+}
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+.box {
+    max-width: 450px;
+    margin: 30px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px #ccc;
+}
 
-    body {
-      margin: 0;
-      padding: 20px;
-      min-height: 100vh;
-      background: #f2f4f7;
-      font-family: Arial, sans-serif;
-    }
+input, textarea, button {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
 
-    .container {
-      max-width: 450px;
-      margin: auto;
-      background: white;
-      padding: 25px;
-      border-radius: 20px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.12);
-    }
+button {
+    background: #111;
+    color: white;
+    border: none;
+    font-weight: bold;
+}
 
-    h1 {
-      text-align: center;
-      margin-top: 0;
-    }
-
-    label {
-      display: block;
-      margin-top: 15px;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 16px;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: #1683f8;
-    }
-
-    button {
-      width: 100%;
-      padding: 16px;
-      margin-top: 22px;
-      border: 0;
-      border-radius: 12px;
-      background: #1683f8;
-      color: white;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #086fd8;
-    }
-
-    .qr-box {
-      background: #f1f5f9;
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 15px;
-    }
-
-    .error {
-      color: #d00;
-      margin-top: 15px;
-      text-align: center;
-    }
-
-    .success {
-      color: #16803c;
-      margin-top: 15px;
-      text-align: center;
-      font-weight: bold;
-    }
-  </style>
+#message {
+    margin-top: 15px;
+    text-align: center;
+}
+</style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="box">
 
-  <h1>🚗 QR CAR</h1>
+<h2>🚗 QR Car</h2>
+<h3>Ro‘yxatdan o‘tish</h3>
 
-  <p style="text-align:center;">
-    Avtomobil ma'lumotlarini kiriting
-  </p>
+<input id="qr_id" placeholder="QR ID: QRCAR0001">
 
-  <div class="qr-box">
-    <b>QR ID:</b>
-    <span id="qrText">Aniqlanmoqda...</span>
-  </div>
+<input id="name" placeholder="F.I.Sh.">
 
+<input id="phone" placeholder="Telefon raqami">
 
-  <form id="registerForm">
+<input id="car_number" placeholder="Davlat raqami">
 
-    <label>Ism va familiya</label>
+<input id="car_model" placeholder="Mashina rusumi">
 
-    <input
-      type="text"
-      id="name"
-      placeholder="Masalan: Mavlonov Bobur"
-      required
-    >
+<textarea id="info" placeholder="Qo‘shimcha ma'lumot"></textarea>
 
+<input id="username" placeholder="Login">
 
-    <label>Telefon raqam</label>
+<input id="password" type="password" placeholder="Parol">
 
-    <input
-      type="tel"
-      id="phone"
-      placeholder="+998 93 540 23 08"
-      required
-    >
+<button onclick="register()">
+    Ro‘yxatdan o‘tish
+</button>
 
-
-    <label>Avtomobil raqami</label>
-
-    <input
-      type="text"
-      id="carNumber"
-      placeholder="01 A 123 BC"
-    >
-
-
-    <label>Avtomobil markasi</label>
-
-    <input
-      type="text"
-      id="carModel"
-      placeholder="Chevrolet Cobalt"
-    >
-
-
-    <label>Qo‘shimcha ma'lumot</label>
-
-    <input
-      type="text"
-      id="info"
-      placeholder="Masalan: oq rang"
-    >
-
-
-    <button type="submit">
-      ✅ REGISTRATSIYADAN O‘TISH
-    </button>
-
-  </form>
-
-
-  <div id="message"></div>
+<div id="message"></div>
 
 </div>
 
-
 <script>
 
-const params = new URLSearchParams(window.location.search);
-
-let qrId = params.get("qr");
-
-
-/*
-  QR ID bo'lmasa
-*/
-
-if (!qrId) {
-
-  document.getElementById("qrText").innerText =
-    "QR ID topilmadi";
-
-} else {
-
-  document.getElementById("qrText").innerText =
-    qrId;
-
-}
-
-
-/*
-  REGISTRATSIYA
-*/
-
-document.getElementById("registerForm").addEventListener(
-  "submit",
-  async function(event) {
-
-    event.preventDefault();
-
-
-    if (!qrId) {
-
-      showError("❌ QR ID topilmadi.");
-
-      return;
-
-    }
-
-
-    const name =
-      document.getElementById("name").value.trim();
-
-    const phone =
-      document.getElementById("phone").value.trim();
-
-    const carNumber =
-      document.getElementById("carNumber").value.trim();
-
-    const carModel =
-      document.getElementById("carModel").value.trim();
-
-    const info =
-      document.getElementById("info").value.trim();
-
-
-    if (!name || !phone) {
-
-      showError(
-        "❌ Ism va telefon raqamni kiriting."
-      );
-
-      return;
-
-    }
-
+async function register() {
 
     const data = {
-
-      qr_id: qrId,
-
-      name: name,
-
-      phone: phone,
-
-      car_number: carNumber,
-
-      car_model: carModel,
-
-      info: info
-
+        qr_id: document.getElementById("qr_id").value.trim(),
+        name: document.getElementById("name").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        car_number: document.getElementById("car_number").value.trim(),
+        car_model: document.getElementById("car_model").value.trim(),
+        info: document.getElementById("info").value.trim(),
+        username: document.getElementById("username").value.trim(),
+        password: document.getElementById("password").value
     };
 
+    const message = document.getElementById("message");
 
     try {
 
-      const response = await fetch(
-        "/api/register",
-        {
-          method: "POST",
+        const response = await fetch("/api/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
 
-          headers: {
-            "Content-Type": "application/json"
-          },
+        const result = await response.json();
 
-          body: JSON.stringify(data)
+        if (!response.ok) {
+            message.innerHTML =
+                "❌ " + (result.error || "Xatolik");
+            return;
         }
-      );
-const result = await response.json();
 
+        message.innerHTML =
+            "✅ Ro‘yxatdan o‘tish muvaffaqiyatli!";
 
-      if (!response.ok) {
-
-        showError(
-          "❌ " +
-          (result.error ||
-          "Registratsiya amalga oshmadi.")
-        );
-
-        return;
-
-      }
-
-
-      /*
-        MUVAFFAQIYATLI
-      */
-
-      document.getElementById("message").className =
-        "success";
-
-      document.getElementById("message").innerText =
-        "✅ Registratsiya muvaffaqiyatli!";
-
-
-      /*
-        Profilga o'tish
-      */
-
-      setTimeout(function() {
-
-        window.location.href =
-          "/car/" +
-          encodeURIComponent(qrId);
-
-      }, 1000);
-
+        setTimeout(() => {
+            window.location.href = "/login.html";
+        }, 1500);
 
     } catch (error) {
 
-      showError(
-        "❌ Server bilan aloqa qilishda xato."
-      );
+        message.innerHTML =
+            "❌ Server bilan aloqa yo‘q";
 
     }
-
-  }
-);
-
-
-function showError(text) {
-
-  document.getElementById("message").className =
-    "error";
-
-  document.getElementById("message").innerText =
-    text;
-
 }
 
 </script>
