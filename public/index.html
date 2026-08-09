@@ -3,34 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>QR CAR</title>
 
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
+      min-height: 100vh;
       font-family: Arial, sans-serif;
       background: #f2f4f7;
       display: flex;
-      justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      justify-content: center;
     }
 
     .box {
-      width: 90%;
-      max-width: 420px;
+      width: 92%;
+      max-width: 430px;
       background: white;
       padding: 25px;
       border-radius: 20px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.12);
       text-align: center;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.12);
     }
 
     h1 {
-      margin-bottom: 8px;
-      color: #222;
+      margin: 0 0 8px;
+      font-size: 32px;
     }
 
     p {
@@ -41,16 +46,21 @@
       width: 100%;
       padding: 16px;
       margin-top: 12px;
-      border: none;
+      border: 0;
       border-radius: 12px;
       background: #1683f8;
       color: white;
       font-size: 17px;
+      font-weight: bold;
       cursor: pointer;
     }
 
     button:hover {
       background: #086fd8;
+    }
+
+    .login {
+      background: #555;
     }
 
     #reader {
@@ -71,70 +81,238 @@
 <div class="box">
 
   <h1>🚗 QR CAR</h1>
-  <p>Avtomobil QR tizimi</p>
 
+  <p>
+    Avtomobil QR tizimi
+  </p>
+
+  <!-- QR SKANER -->
   <button onclick="startScanner()">
     📷 QR KODNI SKANERLASH
   </button>
 
-  <button onclick="location.href='register.html?qr=QRCAR0001'">
+  <!-- REGISTRATSIYA -->
+  <button onclick="openRegistration()">
     📝 REGISTRATSIYA
   </button>
 
+  <!-- PROFILGA KIRISH -->
+  <button class="login" onclick="openLogin()">
+    🔐 MENING PROFILIM
+  </button>
+
   <div id="reader"></div>
+
   <div id="result"></div>
 
 </div>
 
+
 <script>
 
-let scanner;
+let scanner = null;
+
+
+/* =========================
+   REGISTRATSIYA
+========================= */
+
+function openRegistration() {
+
+  window.location.href = "/register.html";
+
+}
+
+
+/* =========================
+   PROFIL LOGIN
+========================= */
+
+function openLogin() {
+
+  window.location.href = "/login.html";
+
+}
+
+
+/* =========================
+   QR SKANER
+========================= */
 
 function startScanner() {
 
-  document.getElementById("reader").style.display = "block";
+  const reader = document.getElementById("reader");
+
+  reader.style.display = "block";
+
+  document.getElementById("result").innerText =
+    "📷 QR kodni kameraga tuting...";
 
   scanner = new Html5Qrcode("reader");
 
+
   scanner.start(
-    { facingMode: "environment" },
+
+    {
+      facingMode: "environment"
+    },
+
     {
       fps: 10,
-      qrbox: { width: 250, height: 250 }
+
+      qrbox: {
+        width: 250,
+        height: 250
+      }
     },
 
-    function(decodedText) {
+
+    async function(decodedText) {
 
       document.getElementById("result").innerText =
-        "QR topildi: " + decodedText;
+        "✅ QR kod topildi!";
 
-      scanner.stop().then(() => {
 
-        let qrId = decodedText;
+      try {
 
-        // Agar QR ichida URL bo'lsa
-        try {
-          let url = new URL(decodedText);
-          let qr = url.searchParams.get("qr");
+        await scanner.stop();
 
-          if (qr) {
-            qrId = qr;
-          }
-        } catch(e) {}
+      } catch (e) {}
 
-        // QR ID bo'yicha profilni ochish
+
+      let qrId = decodedText;
+
+
+      /*
+        Agar QR ichida URL bo'lsa
+      */
+
+      try {
+
+        const url = new URL(decodedText);
+
+        /*
+          Masalan:
+
+          https://qr-car.onrender.com/car/QRCAR0001
+        */
+
+        if (url.pathname.includes("/car/")) {
+
+          window.location.href = decodedText;
+
+          return;
+
+        }
+
+
+        /*
+          Agar URL ichida ?qr=QRCAR0001 bo'lsa
+        */
+
+        const qr = url.searchParams.get("qr");
+
+        if (qr) {
+
+          qrId = qr;
+
+        }
+
+      } catch (e) {
+
+        /*
+          URL bo'lmasa QR ID sifatida ishlatamiz
+        */
+
+        qrId = decodedText;
+
+      }
+
+
+      qrId = String(qrId).trim();
+
+
+      /*
+        QR mavjudligini tekshiramiz
+      */
+
+      try {
+
+        const response = await fetch(
+          "/api/car/" +
+          encodeURIComponent(qrId)
+        );
+
+
+        /*
+          QR topilmadi
+        */
+
+        if (!response.ok) {
+
+          window.location.href =
+            "/register.html?qr=" +
+            encodeURIComponent(qrId);
+
+          return;
+
+        }
+
+
+        const data = await response.json();
+
+
+        /*
+          QR allaqachon ro'yxatdan o'tgan
+        */
+
+        if (data.claimed === true) {
+
+          window.location.href =
+            "/car/" +
+            encodeURIComponent(qrId);
+return;
+
+        }
+
+
+        /*
+          QR hali bo'sh
+        */
+
         window.location.href =
-          "account.html?qr=" + encodeURIComponent(qrId);
+          "/register.html?qr=" +
+          encodeURIComponent(qrId);
 
-      });
+
+      } catch (error) {
+
+        /*
+          API ishlamasa ham
+          registratsiyaga yuboramiz
+        */
+
+        window.location.href =
+          "/register.html?qr=" +
+          encodeURIComponent(qrId);
+
+      }
 
     },
 
+
     function(errorMessage) {
-      // skaner qidirishda xatolarni ko'rsatmaymiz
+
+      /*
+        Kamera skanerlayotganda
+        xatolarni ko'rsatmaymiz.
+      */
+
     }
+
   )
-  .catch(function(err) {
+
+  .catch(function(error) {
 
     document.getElementById("result").innerText =
       "❌ Kamera ochilmadi. Kameraga ruxsat bering.";
