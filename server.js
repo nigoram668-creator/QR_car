@@ -751,8 +751,8 @@ app.get(
 
       const base =
         String(
-          req.query.base ||
-          ${req.protocol}://${req.get("host")}
+req.query.base ||
+${req.protocol}://${req.get("host")}
         ).replace(
           /\/$/,
           ""
@@ -991,9 +991,10 @@ app.listen(
   "0.0.0.0",
   () => {
 
-    console.log(
-      QR CAR server ${PORT} portda ishlayapti
-    );
+   console.log(
+  QR CAR server ${PORT} portda ishlayapti
+);
+
 
   }
 );
